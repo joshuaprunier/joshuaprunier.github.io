@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+      <title>Hugo on joshuaprunier.com </title>
+      <generator uri="https://hugo.spf13.com">Hugo</generator>
+    <link>http://joshuaprunier.com/tags/hugo/index.xml/</link>
+    <language>en-us</language>
+    <author>Joshua Prunier</author>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <updated>Sat, 27 Sep 2014 00:00:00 UTC</updated>
+    
+    <item>
+      <title>New Website</title>
+      <link>http://joshuaprunier.com/blog/2014/new_website/post/</link>
+      <pubDate>Sat, 27 Sep 2014 00:00:00 UTC</pubDate>
+      <author>Joshua Prunier</author>
+      <guid>http://joshuaprunier.com/blog/2014/new_website/post/</guid>
+      
+      <category term="website" />
+      
+      <category term="hugo" />
+      
+      <category term="go" />
+      
+      <description>&lt;p&gt;
+I decided to create a new website months ago and have finally gotten around to publishing it. This new site is powered by &lt;a href=&#34;http://gohugo.io/&#34; target=&#34;_blank&#34;&gt;hugo&lt;/a&gt;. My passion for &lt;a href=&#34;http://golang.org/&#34; target=&#34;_blank&#34;&gt;Go&lt;/a&gt; programming recently made me aware of it. It was definitely a lot of initial work to set up the look and feel and convert my content from blogger. Hopefully it will pay off making future blog posts easier to publish with minimal formatting.
+&lt;/p&gt;
+
+&lt;p&gt;
+Please let me know if you have any feedback on the new site!
+&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

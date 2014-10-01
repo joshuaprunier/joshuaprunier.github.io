@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://joshuaprunier.com/</loc>
+    <lastmod>2014-09-27T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://joshuaprunier.com/blog/2014/new_website/post/</loc>
+    <lastmod>2014-09-27T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://joshuaprunier.com/blog/2014/trite_intro/post/</loc>
+    <lastmod>2014-02-14T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://joshuaprunier.com/blog/2013/ddl_statements/post/</loc>
+    <lastmod>2013-06-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://joshuaprunier.com/blog/2013/delayed_replication/post/</loc>
+    <lastmod>2013-05-13T00:00:00+00:00</lastmod>
+  </url>
+  
+</urlset>

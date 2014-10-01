@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+      <title>Rbr on joshuaprunier.com </title>
+      <generator uri="https://hugo.spf13.com">Hugo</generator>
+    <link>http://joshuaprunier.com/tags/rbr/index.xml/</link>
+    <language>en-us</language>
+    <author>Joshua Prunier</author>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <updated>Mon, 13 May 2013 00:00:00 UTC</updated>
+    
+    <item>
+      <title>Delayed row-based replication with large tables lacking a primary key</title>
+      <link>http://joshuaprunier.com/blog/2013/delayed_replication/post/</link>
+      <pubDate>Mon, 13 May 2013 00:00:00 UTC</pubDate>
+      <author>Joshua Prunier</author>
+      <guid>http://joshuaprunier.com/blog/2013/delayed_replication/post/</guid>
+      
+      <category term="planet_mysql" />
+      
+      <category term="mysql" />
+      
+      <category term="innodb" />
+      
+      <category term="primary key" />
+      
+      <category term="rbr" />
+      
+      <category term="replication" />
+      
+      <description>&lt;p&gt;I configure all our master databases to use row-based binary logging where I work. In my opinion it is a much safer option than statement-based replication. The advantages and disadvantages of both types of MySQL replication are detailed in the online documentation&amp;nbsp;&lt;a href=&#34;https://dev.mysql.com/doc/refman/5.5/en/replication-sbr-rbr.html&#34; rel=&#34;nofollow&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. You can&amp;rsquo;t view the events a slave is applying directly with &lt;i&gt;&lt;b&gt;&amp;lsquo;show processlist&amp;rsquo;&lt;/b&gt;&lt;/i&gt; but by issuing &lt;i&gt;&lt;b&gt;&amp;lsquo;show open tables where in use&amp;rsquo;&lt;/b&gt;&lt;/i&gt; you can detect what table is receiving the attention of the SQL thread. If you need more information the mysqlbinlog command must be used to decode the slaves relay logs or masters binary logs.&lt;/p&gt;
+
+&lt;p&gt;Our developers often change a lot of rows with a single update statement. This usually results in some reasonable replication lag on downstream slaves.&amp;nbsp;Occasionally&amp;nbsp;the lag continues to grow and eventually nagios complains. Investigating the lag I sometimes discover the root of the problem is due to millions of rows updated on a table with no primary key. Putting a primary key constraint on a table is just good practice, especially on InnoDB tables. This is really necessary for any large table that will be replicated.&lt;/p&gt;
+
+&lt;p&gt;To show what replication is actually doing I have cloned the sakila.film table, omitting the indexes, inserted all its rows and finally updated the description column for all 1,000 rows in the new table.&lt;/p&gt;
+
+&lt;pre&gt;
+beefeater(test)&gt; show master status;
++----------------------+----------+--------------+------------------+
+| File                 | Position | Binlog_Do_DB | Binlog_Ignore_DB |
++----------------------+----------+--------------+------------------+
+| beefeater-bin.000001 |      107 |              |                  |
++----------------------+----------+--------------+------------------+
+1 row in set (0.00 sec)
+
+beefeater(test)&gt; use test;
+Database changed
+beefeater(test)&gt; CREATE TABLE test.film (
+    -&gt;   film_id smallint(5) unsigned NOT NULL,
+    -&gt;   title varchar(255) NOT NULL,
+    -&gt;   description text,
+    -&gt;   release_year year(4) DEFAULT NULL,
+    -&gt;   language_id tinyint(3) unsigned NOT NULL,
+    -&gt;   original_language_id tinyint(3) unsigned DEFAULT NULL,
+    -&gt;   rental_duration tinyint(3) unsigned NOT NULL DEFAULT &#39;3&#39;,
+    -&gt;   rental_rate decimal(4,2) NOT NULL DEFAULT &#39;4.99&#39;,
+    -&gt;   length smallint(5) unsigned DEFAULT NULL,
+    -&gt;   replacement_cost decimal(5,2) NOT NULL DEFAULT &#39;19.99&#39;,
+    -&gt;   rating enum(&#39;G&#39;,&#39;PG&#39;,&#39;PG-13&#39;,&#39;R&#39;,&#39;NC-17&#39;) DEFAULT &#39;G&#39;,
+    -&gt;   special_features set(&#39;Trailers&#39;,&#39;Commentaries&#39;,&#39;Deleted Scenes&#39;,&#39;Behind the Scenes&#39;) DEFAULT NULL,
+    -&gt;   last_update timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    -&gt; ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+Query OK, 0 rows affected (0.23 sec)
+
+beefeater(test)&gt; insert into test.film select * from sakila.film;
+Query OK, 1000 rows affected (0.37 sec)
+Records: 1000  Duplicates: 0  Warnings: 0
+
+beefeater(test)&gt; show master status;
++----------------------+----------+--------------+------------------+
+| File                 | Position | Binlog_Do_DB | Binlog_Ignore_DB |
++----------------------+----------+--------------+------------------+
+| beefeater-bin.000001 |   137389 |              |                  |
++----------------------+----------+--------------+------------------+
+1 row in set (0.00 sec)
+
+beefeater(test)&gt; update test.film set description = &#39;&#39;;
+Query OK, 1000 rows affected (0.05 sec)
+Rows matched: 1000  Changed: 1000  Warnings: 0
+
+beefeater(test)&gt; show master status;
++----------------------+----------+--------------+------------------+
+| File                 | Position | Binlog_Do_DB | Binlog_Ignore_DB |
++----------------------+----------+--------------+------------------+
+| beefeater-bin.000001 |   313847 |              |                  |
++----------------------+----------+--------------+------------------+
+1 row in set (0.00 sec)
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br&gt;
+I have edited the output of mysqlbinlog to only show the entries related to the first row created by the insert and update&amp;nbsp;statements&amp;nbsp;above. The&amp;nbsp;@ symbol followed by a number is a mapping to the columns in the table. So&amp;nbsp;@1=film_id,&amp;nbsp;@2=title, @3=description and so on. Note that the update statement records a before and after picture of the row. This is can be used in a pinch to fix mistaken updates if the damage is small instead of having to restore from backups.&lt;/p&gt;
+
+&lt;pre&gt;
+mysqlbinlog --base64-output=auto beefeater-bin.000001 | more
+...
+### INSERT INTO test.film
+### SET
+###   @1=1
+###   @2=&#39;ACADEMY DINOSAUR&#39;
+###   @3=&#39;A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian R
+ockies&#39;
+###   @4=2006
+###   @5=1
+###   @6=NULL
+###   @7=6
+###   @8=990000000
+###   @9=86
+###   @10=000000020.990000000
+###   @11=2
+###   @12=b&#39;00001100&#39;
+###   @13=1139997822
+...
+
+root@beefeater:/var/lib/mysql# mysqlbinlog --base64-output=auto --start-position=137389 beefeater-bin.000001 | more
+...
+### UPDATE test.film
+### WHERE
+###   @1=1
+###   @2=&#39;ACADEMY DINOSAUR&#39;
+###   @3=&#39;A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian R
+ockies&#39;
+###   @4=2006
+###   @5=1
+###   @6=NULL
+###   @7=6
+###   @8=990000000
+###   @9=86
+###   @10=000000020.990000000
+###   @11=2
+###   @12=b&#39;00001100&#39;
+###   @13=1139997822
+### SET
+###   @1=1
+###   @2=&#39;ACADEMY DINOSAUR&#39;
+###   @3=&#39;&#39;
+###   @4=2006
+###   @5=1
+###   @6=NULL
+###   @7=6
+###   @8=990000000
+###   @9=86
+###   @10=000000020.990000000
+###   @11=2
+###   @12=b&#39;00001100&#39;
+###   @13=1368396106
+...
+&lt;/pre&gt;
+
+&lt;p&gt;&lt;br&gt;
+So row-based replication is performing as named and creating a binary log event for each row affected. My single insert and update statement on the master then became 1,000 separate events on the slave.&lt;/p&gt;
+
+&lt;p&gt;Digging in to the MySQL source code I was unable to confirm exactly how the SQL thread applies relay log events on a slave. I assume it is similar to what happens when a normal update statement is executed on a table with no indexes. The server must perform a full table scan to locate a single row. For a table with a million plus rows a million full table scans is expensive! A primary key or suitable unique index will prevent this type of problem.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
