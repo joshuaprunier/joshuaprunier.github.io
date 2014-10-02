@@ -43,13 +43,13 @@
           
           <div class="blog-post">
 
-              
               <h2 class="blog-post-title"><a href="/blog/2013/ddl_statements/post/">DDL statements in MySQL 5.x with row-based replication</a></h2>
               <p class="blog-post-meta">
                 Jun 2 2013 by Joshua Prunier
+                <br>
+                
+                <i>Tags:  <a href="http://joshuaprunier.com/tags/planet_mysql">planet_mysql</a>  <a href="http://joshuaprunier.com/tags/mysql">mysql</a>  <a href="http://joshuaprunier.com/tags/ddl">ddl</a>  <a href="http://joshuaprunier.com/tags/dml">dml</a>  <a href="http://joshuaprunier.com/tags/replication">replication</a> </i>
               </p>
-
-              
               <p>In the replication topology I manage there are many layers of replication filters that prune data at the database and&nbsp;in a few places table level. The way MySQL replicates <a href="http://dev.mysql.com/doc/refman/5.5/en/sql-syntax-data-definition.html">Data Definition Language</a> (create, alter, drop) statements differs from how <a href="http://dev.mysql.com/doc/refman/5.5/en/sql-syntax-data-manipulation.html">Data Manipulation Language</a> (insert, update, delete) statements are handled with row-based replication. I often need to fix broken replication due to a lack of understanding of these subtle differences.</p>
 
 <p>With row-based replication DML statements focus directly on the table being modified. DDL on the other hand always uses statement-based replication and is tied to what is known in MySQL as the &ldquo;default database&rdquo;. The default database is the schema/database currently in use when a DDL statement is executed. The only information I was able to find regarding this in the MySQL documentation is the second to last paragraph <a href="http://dev.mysql.com/doc/refman/5.5/en/binary-log-setting.html">here</a>. If do-db or ignore-db filters are configured on slaves, replication can break when DDL statements are used in certain scenarios. Table level or wildcard replication filters can also add to the potential breakage but I will save that for a separate blog post.</p>
@@ -300,11 +300,6 @@ Not directly related to the theme of this post but worth mentioning is the uniqu
 
 <p>Hopefully the examples above make the rules that govern replication of DDL and DML statements clearer. The potential impact on a dba really depends on the size and configuration of their replication topology. The more databases and filters in place to limit and/or direct what is replicated, the greater the chance replication can break. Number of users manipulating database objects, their knowledge of MySQL and the replication topology they are working within is also a big factor.</p>
 
-              <p class="blog-post-meta">
-                <br>
-                
-                <i>Tags:  <a href="http://joshuaprunier.com/tags/planet_mysql">planet_mysql</a>  <a href="http://joshuaprunier.com/tags/mysql">mysql</a>  <a href="http://joshuaprunier.com/tags/ddl">ddl</a>  <a href="http://joshuaprunier.com/tags/dml">dml</a>  <a href="http://joshuaprunier.com/tags/replication">replication</a> </i>
-              </p>
             </div>
 
           

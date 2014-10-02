@@ -43,13 +43,13 @@
           
           <div class="blog-post">
 
-              
               <h2 class="blog-post-title"><a href="/blog/2013/delayed_replication/post/">Delayed row-based replication with large tables lacking a primary key</a></h2>
               <p class="blog-post-meta">
                 May 13 2013 by Joshua Prunier
+                <br>
+                
+                <i>Tags:  <a href="http://joshuaprunier.com/tags/planet_mysql">planet_mysql</a>  <a href="http://joshuaprunier.com/tags/mysql">mysql</a>  <a href="http://joshuaprunier.com/tags/innodb">innodb</a>  <a href="http://joshuaprunier.com/tags/primary%20key">primary key</a>  <a href="http://joshuaprunier.com/tags/rbr">rbr</a>  <a href="http://joshuaprunier.com/tags/replication">replication</a> </i>
               </p>
-
-              
               <p>I configure all our master databases to use row-based binary logging where I work. In my opinion it is a much safer option than statement-based replication. The advantages and disadvantages of both types of MySQL replication are detailed in the online documentation&nbsp;<a href="https://dev.mysql.com/doc/refman/5.5/en/replication-sbr-rbr.html" rel="nofollow" target="_blank">here</a>. You can&rsquo;t view the events a slave is applying directly with <i><b>&lsquo;show processlist&rsquo;</b></i> but by issuing <i><b>&lsquo;show open tables where in use&rsquo;</b></i> you can detect what table is receiving the attention of the SQL thread. If you need more information the mysqlbinlog command must be used to decode the slaves relay logs or masters binary logs.</p>
 
 <p>Our developers often change a lot of rows with a single update statement. This usually results in some reasonable replication lag on downstream slaves.&nbsp;Occasionally&nbsp;the lag continues to grow and eventually nagios complains. Investigating the lag I sometimes discover the root of the problem is due to millions of rows updated on a table with no primary key. Putting a primary key constraint on a table is just good practice, especially on InnoDB tables. This is really necessary for any large table that will be replicated.</p>
@@ -173,11 +173,6 @@ So row-based replication is performing as named and creating a binary log event 
 
 <p>Digging in to the MySQL source code I was unable to confirm exactly how the SQL thread applies relay log events on a slave. I assume it is similar to what happens when a normal update statement is executed on a table with no indexes. The server must perform a full table scan to locate a single row. For a table with a million plus rows a million full table scans is expensive! A primary key or suitable unique index will prevent this type of problem.</p>
 
-              <p class="blog-post-meta">
-                <br>
-                
-                <i>Tags:  <a href="http://joshuaprunier.com/tags/planet_mysql">planet_mysql</a>  <a href="http://joshuaprunier.com/tags/mysql">mysql</a>  <a href="http://joshuaprunier.com/tags/innodb">innodb</a>  <a href="http://joshuaprunier.com/tags/primary%20key">primary key</a>  <a href="http://joshuaprunier.com/tags/rbr">rbr</a>  <a href="http://joshuaprunier.com/tags/replication">replication</a> </i>
-              </p>
             </div>
 
           
