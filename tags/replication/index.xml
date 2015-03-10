@@ -1,31 +1,21 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-      <title>Replication on joshuaprunier.com </title>
-      <generator uri="https://hugo.spf13.com">Hugo</generator>
-    <link>http://joshuaprunier.com/tags/replication/index.xml/</link>
-    <language>en-us</language>
-    <author>Joshua Prunier</author>
-    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
-    <updated>Sun, 02 Jun 2013 00:00:00 UTC</updated>
+    <title>Replication on joshuaprunier.com</title>
+    <link>http://joshuaprunier.com/tags/replication/</link>
+    <description>Recent content in Replication on joshuaprunier.com</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <copyright>Copyright (c) 2015</copyright>
+    <lastBuildDate>Sun, 02 Jun 2013 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://joshuaprunier.com/tags/replication/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>DDL statements in MySQL 5.x with row-based replication</title>
       <link>http://joshuaprunier.com/blog/2013/ddl_statements/post/</link>
-      <pubDate>Sun, 02 Jun 2013 00:00:00 UTC</pubDate>
-      <author>Joshua Prunier</author>
+      <pubDate>Sun, 02 Jun 2013 00:00:00 +0000</pubDate>
+      
       <guid>http://joshuaprunier.com/blog/2013/ddl_statements/post/</guid>
-      
-      <category term="planet_mysql" />
-      
-      <category term="mysql" />
-      
-      <category term="ddl" />
-      
-      <category term="dml" />
-      
-      <category term="replication" />
-      
       <description>&lt;p&gt;In the replication topology I manage there are many layers of replication filters that prune data at the database and&amp;nbsp;in a few places table level. The way MySQL replicates &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.5/en/sql-syntax-data-definition.html&#34;&gt;Data Definition Language&lt;/a&gt; (create, alter, drop) statements differs from how &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.5/en/sql-syntax-data-manipulation.html&#34;&gt;Data Manipulation Language&lt;/a&gt; (insert, update, delete) statements are handled with row-based replication. I often need to fix broken replication due to a lack of understanding of these subtle differences.&lt;/p&gt;
 
 &lt;p&gt;With row-based replication DML statements focus directly on the table being modified. DDL on the other hand always uses statement-based replication and is tied to what is known in MySQL as the &amp;ldquo;default database&amp;rdquo;. The default database is the schema/database currently in use when a DDL statement is executed. The only information I was able to find regarding this in the MySQL documentation is the second to last paragraph &lt;a href=&#34;http://dev.mysql.com/doc/refman/5.5/en/binary-log-setting.html&#34;&gt;here&lt;/a&gt;. If do-db or ignore-db filters are configured on slaves, replication can break when DDL statements are used in certain scenarios. Table level or wildcard replication filters can also add to the potential breakage but I will save that for a separate blog post.&lt;/p&gt;
@@ -281,22 +271,9 @@ Not directly related to the theme of this post but worth mentioning is the uniqu
     <item>
       <title>Delayed row-based replication with large tables lacking a primary key</title>
       <link>http://joshuaprunier.com/blog/2013/delayed_replication/post/</link>
-      <pubDate>Mon, 13 May 2013 00:00:00 UTC</pubDate>
-      <author>Joshua Prunier</author>
+      <pubDate>Mon, 13 May 2013 00:00:00 +0000</pubDate>
+      
       <guid>http://joshuaprunier.com/blog/2013/delayed_replication/post/</guid>
-      
-      <category term="planet_mysql" />
-      
-      <category term="mysql" />
-      
-      <category term="innodb" />
-      
-      <category term="primary key" />
-      
-      <category term="rbr" />
-      
-      <category term="replication" />
-      
       <description>&lt;p&gt;I configure all our master databases to use row-based binary logging where I work. In my opinion it is a much safer option than statement-based replication. The advantages and disadvantages of both types of MySQL replication are detailed in the online documentation&amp;nbsp;&lt;a href=&#34;https://dev.mysql.com/doc/refman/5.5/en/replication-sbr-rbr.html&#34; rel=&#34;nofollow&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. You can&amp;rsquo;t view the events a slave is applying directly with &lt;i&gt;&lt;b&gt;&amp;lsquo;show processlist&amp;rsquo;&lt;/b&gt;&lt;/i&gt; but by issuing &lt;i&gt;&lt;b&gt;&amp;lsquo;show open tables where in use&amp;rsquo;&lt;/b&gt;&lt;/i&gt; you can detect what table is receiving the attention of the SQL thread. If you need more information the mysqlbinlog command must be used to decode the slaves relay logs or masters binary logs.&lt;/p&gt;
 
 &lt;p&gt;Our developers often change a lot of rows with a single update statement. This usually results in some reasonable replication lag on downstream slaves.&amp;nbsp;Occasionally&amp;nbsp;the lag continues to grow and eventually nagios complains. Investigating the lag I sometimes discover the root of the problem is due to millions of rows updated on a table with no primary key. Putting a primary key constraint on a table is just good practice, especially on InnoDB tables. This is really necessary for any large table that will be replicated.&lt;/p&gt;
