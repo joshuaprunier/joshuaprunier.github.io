@@ -16,10 +16,10 @@
       <pubDate>Fri, 14 Feb 2014 00:00:00 +0000</pubDate>
       
       <guid>http://joshuaprunier.com/blog/2014/trite_intro/post/</guid>
-      <description>&lt;p&gt;&lt;div class=&#34;separator&#34; style=&#34;clear: both; text-align: center;&#34;&gt;
+      <description>&lt;div class=&#34;separator&#34; style=&#34;clear: both; text-align: center;&#34;&gt;
   &lt;a href=&#34;#&#34; imageanchor=&#34;1&#34; style=&#34;clear: left; float: left; margin-bottom: 1em; margin-right: 1em;&#34;&gt;&lt;img border=&#34;0&#34; src=&#34;http://joshuaprunier.com/static/img/gopher_dolphin.jpg&#34;   /&gt;&lt;/a&gt;
 &lt;/div&gt;
-&lt;/p&gt;
+
 
 &lt;p&gt;
 Mysqldump is a fantastic tool for backing up and restoring small and medium sized MySQL tables and databases quickly. However, when databases surge into the multi-terabyte range restoring from logical backups is inefficient. It can take a significant amount of time to insert a hundred million plus rows to a single table, even with very fast I/O. Programs like MySQL Enterprise Backup and Percona XtraBackup allow non-blocking binary copies of your InnoDB tables to be taken while it is online and processing requests. XtraBackup also has an export feature that allows InnoDB file per tablespaces to be detached from the shared table space and imported to a completely different MySQL instance.
