@@ -7,8 +7,89 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <copyright>Copyright (c) 2015</copyright>
-    <lastBuildDate>Sat, 27 Sep 2014 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 11 Apr 2016 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://joshuaprunier.com/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Trite Bug Fixes and Updates</title>
+      <link>http://joshuaprunier.com/blog/2016/trite_updates/post/</link>
+      <pubDate>Mon, 11 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>http://joshuaprunier.com/blog/2016/trite_updates/post/</guid>
+      <description>&lt;div class=&#34;separator&#34; style=&#34;clear: both; text-align: center;&#34;&gt;
+  &lt;a href=&#34;#&#34; imageanchor=&#34;1&#34; style=&#34;clear: left; float: left; margin-bottom: 0em; margin-right: 1em;&#34;&gt;&lt;img border=&#34;0&#34; src=&#34;http://joshuaprunier.com/static/img/gopher_dolphin.jpg&#34;   /&gt;&lt;/a&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;
+I originally released &lt;a href=&#34;https://github.com/joshuaprunier/trite&#34; target=&#34;_blank&#34;&gt;Trite&lt;/a&gt; a little over two years ago. Since then I have continued to fix bugs and add new functionality as spare time allowed. The primary reason for this is that Trite is a tool I often use where I work but another important reason is that I am constantly working to improve my knowledge and abilities. 
+&lt;/p&gt;
+&lt;p&gt;
+The following items are some of the major changes and new functionality available:
+&lt;/p&gt;
+
+&lt;p&gt;&lt;style&gt; ul { list-style-position:inside; } &lt;/style&gt;
+&lt;div&gt;
+  &lt;ul&gt;
+      &lt;li&gt;Code is more idiomatic Go&lt;/li&gt;
+      &lt;li&gt;Linux, OSX &amp;amp; Windows support&lt;/li&gt;
+      &lt;li&gt;Server root landing page&lt;/li&gt;
+      &lt;li&gt;Table download and import logic modified&lt;/li&gt;
+      &lt;li&gt;Reformatted progress display&lt;/li&gt;
+      &lt;li&gt;MySQL Unicode object translation&lt;/li&gt;
+      &lt;li&gt;Improved error handling and logging&lt;/li&gt;
+      &lt;li&gt;Support for TLS &amp;amp; clear text configured databases&lt;/li&gt;
+      &lt;li&gt;Optional compression for slow networks&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Code is more idiomatic Go&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;
+This isn&amp;rsquo;t a bug fix or new functionality but is something I consider important. Trite was my first major project in Go so naturally I did some things incorrect or weird being a novice with the language. Making the Trite code more idiomatic Go was about going back and refactoring to make it more readable and hopefully more extensible.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Linux, OSX &amp;amp; Windows support&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;
+One of Go&amp;rsquo;s great features is cross platform compilation. However, some things, like dealing with standard in/out/err is a little different between Windows and Linux/OSX. By switching to the &lt;a href=&#34;https://godoc.org/golang.org/x/crypto/ssh/terminal&#34; target=&#34;_blank&#34;&gt;ssh/terminal&lt;/a&gt; sub-repo Trite is better able to handle prompting the user for a password in a secure manner and also reattaching stdout if the user decides to ctrl+c during the prompting phase. Also windows does not have the same concept of user and group ownership for files that Linux/OSX does and so there are some OS specific exceptions. The majority of the code is the same across platforms though.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Server root landing page&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;The Trite server now has a root landing page with links to the structure dump .sql and XtraBackup files. Before you had to travel directly to the /tables or /backups path. Not a huge deal but a nice convenience.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Table download and import logic modified&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;The way I originally implemented Trite&amp;rsquo;s download and apply logic never really sat well with me. It worked but it was messy, especially if exceptions were encountered during run time. I didn&amp;rsquo;t really understand how to use Go&amp;rsquo;s channels and deal with concurrency properly at the time. With the prior logic, you specified a number of worker threads and Trite would begin downloading that many files at once. Then due to file size differences the downloads and imports would begin to offset. It was a crude attempt to fix a single threaded performance problem where for a single worker during the table import phase nothing was being downloaded. Once I understood this problem properly and had more experience with Go&amp;rsquo;s concurrency primitives a better solution became clear. Create a download queue that is single threaded and allow table imports to perform concurrently if necessary. So the NIC is always in use and not over saturated with multiple file downloads. An additional benefit to this new logic was the ability to clean up and handle errors better when they occur.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Reformatted progress display&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;The new progress display was a bit tricky to write but makes for a much better user experience. The display is closely related to the new table download and import logic. The problem with the previous logic was that downloading and importing was happening concurrently for many tables. It only made sense to notify when a table had been restored. Otherwise the display output would have been a jumbled mess. The progress display is now single threaded. A table will begin with a status of &amp;ldquo;Downloading,&amp;rdquo; then &amp;ldquo;Applying&amp;rdquo; and finally &amp;ldquo;Restored.&amp;rdquo; A tables status only occupies a single line and that information is rewritten when the status is updated. If a problem occurs then a status of &amp;ldquo;ERROR&amp;rdquo; is shown and information is written to the error file. So if a very large table takes a while to download and apply, the display will stay on an applying status for that table, even though smaller tables may be downloading and importing in the background. As soon as the long running table has finished importing the display will quickly catch up, printing any other tables that may have finished already, stopping on the table currently being processed and its status.&lt;/p&gt;
+
+&lt;p&gt;The display will also now show the download progress for large files. The Trite client defaults to showing the downloaded percentage for any file over 5 gigabytes. The size a file must be for download progress to be shown can be adjusted with the &lt;i&gt;-progressLimit&lt;/i&gt; flag. Some very large tables can take dozens of minutes or hours to download even on a fast internal network and it&amp;rsquo;s nice to see that Trite is in fact still running properly.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;MySQL Unicode object translation&lt;/b&gt;&lt;/p&gt;
+MySQL encodes certain Unicode characters on the file system. If you create a schema or table with the omega character &amp;ldquo;Ω&amp;rdquo; for example, MySQL will create a directory or file named &amp;ldquo;@7P&amp;rdquo; on disk even though the character is properly visible within the database. I referenced the MySQL source code to determine how MySQL does this and created a &lt;a href=&#34;https://github.com/joshuaprunier/mysqlUTF8&#34; target=&#34;_blank&#34;&gt;mysqlUTF8&lt;/a&gt; library in Go for Trite to import. Trite can now properly work with Unicode MySQL objects and find the correct path and file names within an XtraBackup or MySQL data directory. This wasn&amp;rsquo;t something I personally had to deal with where I work but knew it could affect some users and wanted to make sure it was not an issue for non-native English speakers that might want to use Trite.
+&lt;p&gt;
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Improved error handling and logging&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;
+If something went wrong Trite used to just dump a stack trace to the user. This was not very helpful at all. Trite now does its best to detect when an error occurs, display that an error occurred, log the error and some database information to a file and try to continue processing. That file by default is &amp;ldquo;trite.err&amp;rdquo; in the directory where trite is invoked. The &lt;i&gt;-errorLog&lt;/i&gt; flag allows you to explicitly set the location and name of the error file if desired. If a problem happens during download the partial file is removed. If a problem happens during table import or stored routine, trigger or view creation the current process list and show engine innodb status is captured and also logged to the error file to aid in debugging.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Support for TLS &amp;amp; clear text configured databases&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;
+I added MySQL&amp;rsquo;s clear text client side plugin functionality to the wonderful &lt;a href=&#34;https://github.com/go-sql-driver/mysql#allowcleartextpasswords&#34; target=&#34;_blank&#34;&gt;Go MySQL driver&lt;/a&gt; which Trite uses. I have configured users MySQL accounts where I work to be authenticated via LDAP and not natively within MySQL. So Trite naturally has support via the &lt;i&gt;-tls&lt;/i&gt; flag to use the clear text client side plugin and it also assumes MySQL is configured with TLS to prevent passwords being compromised by tcp capture.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;&lt;b&gt;Optional compression for slow networks&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;
+One of Go&amp;rsquo;s primary advantages is being able to take advantage of all cpu cores on a server. &lt;a href=&#34;https://github.com/klauspost/pgzip&#34; target=&#34;_blank&#34;&gt;PGZIP&lt;/a&gt; is a drop in replacement for the standard Go gzip library that allows all cpu cores to be used during compression/decompression. Using Trite to restore a 12 gigabyte database consisting of mostly text across the internet took me about 2 &lt;sup&gt;1&lt;/sup&gt;&amp;frasl;&lt;sub&gt;2&lt;/sub&gt; hours. Using on the fly compression with the new &lt;i&gt;-gz&lt;/i&gt; client flag the restore time is reduced to just 30 minutes! A massive time savings and the Trite server in this case was on a fairly under powered Linux vm and the client was a macbook pro laptop. Compressed transfers could be even faster on serious enterprise grade hardware.
+&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;br&gt;&lt;p&gt;
+The next big thing for Trite is probably the ability to serve tables from an active MySQL database instead of an XtraBackup prepared with the &amp;ndash;export option. MySQL 5.6/MariaDB 10 and above support this and it would be a quicker restore option than requiring an XtraBackup. This is a fair amount of work though and I&amp;rsquo;m not sure of the exact time line of when this might be accomplished.
+&lt;/p&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>New Website</title>
@@ -33,7 +114,7 @@ Please let me know if you have any feedback on the new site!
       
       <guid>http://joshuaprunier.com/blog/2014/trite_intro/post/</guid>
       <description>&lt;div class=&#34;separator&#34; style=&#34;clear: both; text-align: center;&#34;&gt;
-  &lt;a href=&#34;#&#34; imageanchor=&#34;1&#34; style=&#34;clear: left; float: left; margin-bottom: 1em; margin-right: 1em;&#34;&gt;&lt;img border=&#34;0&#34; src=&#34;http://joshuaprunier.com/static/img/gopher_dolphin.jpg&#34;   /&gt;&lt;/a&gt;
+  &lt;a href=&#34;#&#34; imageanchor=&#34;1&#34; style=&#34;clear: left; float: left; margin-bottom: 0em; margin-right: 1em;&#34;&gt;&lt;img border=&#34;0&#34; src=&#34;http://joshuaprunier.com/static/img/gopher_dolphin.jpg&#34;   /&gt;&lt;/a&gt;
 &lt;/div&gt;
 
 
